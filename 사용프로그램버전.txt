@@ -1,0 +1,18 @@
+<리눅스>
+vmware player==17
+ubuntu==22.04.4
+python==3.11
+amazon corrett0(java)==11
+hadoop==3.3.6
+spark==3.5.1
+airflow==2.7.0
+<aws>
+python==3.12.2
+django==5.0.4
+sqlite3==3.44.3
+nginx==1.14.0
+gunicorn==21.2.0
+nginx 랑
+gunicorn 몇 했는지 기억이 잘 안나서
+내일 aws 들어가서 체크해보겠습니다.
+
