@@ -1,0 +1,43 @@
+장고랑 깃허브 연결하는 법
+
+/usr/bin/python3
+
+
+pip freeze > requirements.txt
+
+gitignore
+https://www.toptal.com/developers/gitignore/api/django
+
+
+깃 설치
+다음 권법으로 설치 완료
+
+
+git bash 실행
+프로젝트 장소로 이동
+
+# 디렉토리 초기화
+git init
+
+ls
+
+# 현재 위치로 부터 ls에 있는 파일들 추적
+git add .
+
+# 현재 파일 디렉토리 내용 저장
+git commit
+
+i 눌러서 내용 수정
+first commit 입력
+:wq!
+
+git log
+하면 저장한 first commit 보임
+
+깃허브가서 레퍼지토리 만들기
+
+안에 있는 내용 차례대로 실행
+git remote add origin https://github.com/golfyangkee/semi-test.git
+git push -u origin master
+
+

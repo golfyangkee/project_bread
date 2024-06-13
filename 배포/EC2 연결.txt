@@ -1,0 +1,287 @@
+https://multicampus-aws.signin.aws.amazon.com/console
+들어가서 로그인
+
+
+
+# 파이참 venv  들어가는 법
+venv/Scripts/activate
+
+/usr/bin/python3
+
+
+cd {pem 키가 저장되어 있는 경로}
+cd C:\Users\elly\OneDrive\바탕 화면\32회차\AWS\훈련생 배포용
+
+
+// cd Desktop\강사용
+dir (win)
+ls (mac)
+
+
+18.178.95.238
+
+ssh -i U-팀.pem 계정@ip
+ssh -i U-final02.pem lab07@43.206.68.150
+ssh -i U-final02.pem ubuntu@43.206.68.150
+
+ssh -i U-tutor.pem tutor@18.178.95.238
+
+
+** 계정 (ubuntu) -> 설치 (sudo 권한)
+
+aws 로그인 
+비번 js0630
+
+sudo apt update
+
+sudo apt upgrade
+y
+
+# upgrade 하는데 99%에서 막힐때
+sudo rm /var/lib/apt/lists/lock 
+sudo rm /var/cache/apt/archives/lock
+sudo rm /var/lib/dpkg/lock*
+
+sudo apt install python3.-pip python3.-dev python3-venv
+
+# ssh 키페어 만들어서 진행
+ssh-keygen -t rsa -b 4096
+cat /home/ubuntu/ .ssh/id_rsa.pub
+내용 깃허브의 ssh and gpg keys 등록
+
+복사해올 레퍼지토리 ssh 복사해서
+git clone git@github.com:golfyangkee/semi-test.git
+
+ls 해서 보면 생김
+해당 파일 들어가기
+cd
+
+# 가상환경 만들기
+python3 -m venv venv
+
+# 가상환경 실행
+source venv/bin/activate
+
+# 패키지 설치
+pip install -r requirements.txt
+
+asgiref==3.8.1 (안돼서 3.4.1 설치)
+Django==5.0.4
+sqlparse==0.4.4
+tzdata==2024.1
+pillow==10.3.0
+
+
+버전 안돼서 설치한것
+asgiref==안돼서 3.4.1 설치
+Django==안돼서 3.2.25
+sqlparse==0.4.4 (이미 설치되어 있다고 함)
+tzdata==2024.1
+pillow==안돼서 8.4.0
+
+버블릭 주소
+43.206.68.150
+
+python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 172.31.16.168:8000
+43.206.68.150:8000
+
+
+sqlite3 버전 너무 낮아서 안된다고 뜸
+3.44.3 다운 받음
+https://velog.io/@odh0112/centOS7-sqlite3-%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85
+참고
+
+
+/home/ubuntu/mysite/image_upload/data/resnet50 model.pth 
+
+
+http://43.206.68.150:8000/
+-> disallowedHost 뜸 (장고는 돌아감)
+
+
+#-*- coding: utf-8 -*-
+
+# 장고파일 settings 변경
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '43.206.68.150',
+    
+]
+
+STATIC_URL = "static/"
+# STATIC_ROOT=BASE_DIR / "static"
+
+STATICFILES_DIRS = [
+    #os.path.join('static'),
+    os.path.join(BASE_DIR, 'static'),
+]
+
+
+STATICFILES_ROOT = [
+    #os.path.join('static'),
+    os.path.join(BASE_DIR, 'static'),
+]
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+MEDIA_URL = '/media/'
+import os
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+git add .
+git commit -m "update settings.py"
+git push
+
+
+다시 서버로 돌아와서
+git pull
+
+python manage.py runserver 0.0.0.0:8000
+
+# 이미 사용중인 포트다 라고 나오면
+ lsof -i:8000
+kill -9 [PID]
+
+http://43.206.68.150:8000/
+-> not found 
+
+http://43.206.68.150:8000/auth/login
+
+
+
+
+# gunicorn 설치
+pip install gunicorn
+
+# gunicorn 실행하기 위한 설정 파일 만들기
+sudo vim /etc/systemd/system/gunicorn.service
+
+# 주의!!
+프로젝트 이름 = mysite
+루트 폴더 이름 = semi-test
+
+-------------
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/{루트폴더이름}
+ExecStart=/home/ubuntu/{루트폴더이름}/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/ubuntu/{루트폴더이름}/{프로젝트이름}.sock {프로젝트이름}.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+----------
+
+# 껏다 켰다 해도 자동실행
+sudo systemctl enable gunicorn
+
+# 시작
+sudo systemctl start gunicorn
+
+# 돌아가는 지 확인
+sudo systemctl status gunicorn
+-> Active: active (running)
+이거 뜨면 잘 돌아가는 것
+
+쉬프트 콜론 -> q
+
+
+
+# db 체크
+https://sqliteviewer.app/#/db.sqlite3/table/users_user/
+
+43.206.68.150:8000/auth/login
+
+
+
+# nginx 설치
+sudo apt install nginx
+
+# nginx 의 설정파일
+sudo vim /etc/nginx/sites-available/프로젝트이름
+-> sudo vim /etc/nginx/sites-available/mysite
+i
+
+# 주의!!
+프로젝트 이름 = mysite
+루트 폴더 이름 = semi-test
+ip = 43.206.68.150
+
+--------------------
+server {
+	listen 80;
+	server_name your_domain or ip;
+
+	location / {
+		include proxy_params;
+		proxy_pass http://unix:/home/ubuntu/{루트폴더이름}/{프로젝트이름}.sock;
+	}
+
+	location /static {
+		root /home/ubuntu{루트폴더이름};
+	}
+
+	location /media {
+		root /home/ubuntu/{루트폴더이름};
+	}
+}
+-------------------------------------
+:wq!
+
+# 링크 설정
+sudo ln -s /etc/nginx/sites-available/{myproject} /etc/nginx/sites-enabled/
+-> sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/
+
+# 오타 없는지 테스트
+sudo nginx -t
+-> 
+nginx: [warn] conflicting server name "43.206.68.150" on 0.0.0.0:80, ignored
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+
+# 새로 시작
+sudo systemctl restart nginx
+
+# 잘 돌아가는 지 확인
+sudo systemctl status nginx
+-> Active: active (running) 잘 된거
+
+이제 8000 포트가 아니라 디폴트라서 그냥 가면 된다.
+
+# 502 bad gate 뜨면
+tail -f /var/log/nginx/error.log
+
+# 권한 거절되었다고 뜨면
+namei -nom /home/ubuntu/semi-test/mysite.sock
+-> 마지막이 rwx 가 다있어야 한다.
+
+cd
+
+# 권한 부여
+chmod 755 ~
+chmod 755 ~/semi-test
+
+# 폴더 삭제 명령어
+rm -r folder_name
+
+# css 안되면
+cd semi-test/
+source venv/bin/activate
+ptyhon manage.py collectstatic
+yes
+
+# 삭제
+sudo systemctl stop nginx
+sudo apt-get remove --purge nginx
