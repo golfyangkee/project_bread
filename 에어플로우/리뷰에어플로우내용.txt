@@ -1,0 +1,74 @@
+mport datetime
+import pendulum
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+# from airflow.operators.bash_operator import BashOperator
+# from airflow.sensors.filesystem_sensor import FileSensor
+
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.bash import BashOperator
+
+local_tz = pendulum.timezone("Asia/Seoul")
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime.datetime(2024, 3, 1, tzinfo=local_tz),
+    'retries': 1,
+    'retry_delay': datetime.timedelta(minutes=5),
+}
+
+dag = DAG('crawl', default_args=default_args, schedule_interval='@daily', catchup=False)
+
+
+def python_task(**context):
+    from selenium import webdriver
+    from bs4 import BeautifulSoup
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    import time
+    import pandas as pd
+    from datetime import datetime, timedelta
+
+    # 여기부터는 크롤링 코드
+
+
+    # 엑셀 저장
+    now = datetime.now()
+
+    filename= '/home/big/temp/review_'+now.strftime("%Y%m%d") +'.csv'
+    df.to_csv(filename, index=False)
+
+
+    # 엑셀 파일 이름을 XCom으로 전달
+    context['ti'].xcom_push(key='filename', value=filename)
+#################################################
+crawling = PythonOperator(
+    task_id='crawling',
+    python_callable=python_task,
+    provide_context=True,
+    dag=dag
+)
+
+
+exists = FileSensor(
+    task_id='exists',
+    filepath="{{ ti.xcom_pull(task_ids='crawling', key='filename') }}",
+   #  fs_conn_id='file_sensor_conn',
+    poke_interval=30,
+
+)
+
+upload = BashOperator(
+    task_id='upload',
+    bash_command="hdfs dfs -put {{ ti.xcom_pull(task_ids='crawling', key='filename') }} /review/",
+    dag=dag
+)
+
+prn = BashOperator(
+    task_id='prn',
+    bash_command='echo "success makefile & upload"',
+    dag=dag
+)
+
+crawling  >> exists >> upload >> prn

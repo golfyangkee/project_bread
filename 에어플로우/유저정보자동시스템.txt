@@ -1,0 +1,101 @@
+from datetime import datetime
+import datetime
+import pendulum
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+# from airflow.operators.bash_operator import BashOperator
+# from airflow.sensors.filesystem_sensor import FileSensor
+
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.bash import BashOperator
+
+local_tz = pendulum.timezone("Asia/Seoul")
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime.datetime(2024, 3, 1, tzinfo=local_tz),
+    'retries': 1,
+    'retry_delay': datetime.timedelta(minutes=5),
+}
+
+dag = DAG('user_info', default_args=default_args, schedule_interval='@daily', catchup=False)
+
+
+def python_task(**context):
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    import time
+
+    # 여기부터는 python_task 함수 내용... 데이터 프레임 만들기 및 엑셀 저장 코드
+까지...
+
+
+    # 브라우저 꺼짐 방지 옵션
+    chrome_options = Options()
+    chrome_options.add_experimental_option("detach", True)
+
+    driver = webdriver.Chrome(options=chrome_options)
+
+    # 웹페이지 해당 주소 이동
+    url = "http://43.206.68.150:8000/admin/"
+    driver.get(url)
+    time.sleep(3)
+
+    # user_info.py
+    # 입력 및 클릭
+    driver.find_element(By.XPATH, value='//*[@id="id_username"]').send_keys('admin')
+    driver.find_element(By.XPATH, value='//*[@id="id_password"]').send_keys('1')
+    driver.find_element(By.XPATH, value='//*[@id="login-form"]/div[3]/input').click()
+    time.sleep(3)
+    driver.find_element(By.XPATH, value='//*[@id="content-main"]/div[1]/table/tbody/tr/th/a').click()
+    time.sleep(3)
+    driver.find_element(By.XPATH, value='//*[@id="action-toggle"]').click()
+    time.sleep(3)
+    driver.find_element(By.XPATH, value='//*[@id="changelist-form"]/div[1]/label/select').click()
+    time.sleep(3)
+    driver.find_element(By.XPATH, value='//*[@id="changelist-form"]/div[1]/label/select/option[3]').click()
+    time.sleep(3)
+    driver.find_element(By.XPATH, value='//*[@id="changelist-form"]/div[1]/button').click()
+    time.sleep(3)
+
+    print('finished!')
+
+    driver.quit()
+
+    now= datetime.now()
+    now_string= now.strftime("%Y%m%d%H")
+    
+    filename = '/home/big/Downloads/user_info_'+now_string+'.csv'
+
+    # 엑셀 파일 이름을 XCom으로 전달
+    context['ti'].xcom_push(key='filename', value=filename)
+#################################################
+download= PythonOperator(
+    task_id='download',
+    python_callable=python_task,
+    provide_context=True,
+    dag=dag
+)
+
+exists = FileSensor(
+    task_id='exists',
+    filepath="{{ ti.xcom_pull(task_ids='download', key='filename') }}",
+   #  fs_conn_id='file_sensor_conn',
+    poke_interval=30,
+)
+
+upload = BashOperator(
+    task_id='upload',
+    bash_command="hdfs dfs -put {{ ti.xcom_pull(task_ids='download', key='filename') }} /user_info/",
+    dag=dag
+)
+
+prn = BashOperator(
+    task_id='prn',
+    bash_command='echo "success makefile & upload"',
+    dag=dag
+)
+
+crawling  >> exists >> upload >> prn
