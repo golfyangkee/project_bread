@@ -1,0 +1,54 @@
+# db 체크 링크
+https://sqliteviewer.app/#/db.sqlite3/table/users_user/
+
+# users 어플리케이션 만들기
+python manage.py startapp users
+
+# users.models.py 가서 User 등록
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    pass
+
+# settings.py 가서 앱 등록 및 어떤 거 주유저로 쓸지 정해두기
+"users"
+
+## 어떤 거를 주 유저로 쓸지 정해두는 것 default = auth.User
+AUTH_USER_MODEL="users.User"
+
+# 기존 db.sqlite3 삭제 후 마이그레이션 하기
+python manage.py makemigrations
+python manage.py migrate
+
+# 만든 유저 users.admin.py 에 등록
+## admin에 만든 유저 등록
+from .models import User
+admin.site.register(User)
+
+
+# 슈퍼유저 만들기 - 관리자 권한 가진 유저
+python manage.py createsuperuser
+
+사용자 이름: admin
+이메일 주소: 
+Password: 
+Password (again):
+비밀번호가 너무 짧습니다. 최소 8 문자를 포함해야 합니다.
+비밀번호가 너무 일상적인 단어입니다.
+비밀번호가 전부 숫자로 되어 있습니다.
+Bypass password validation and create user anyway? [y/N]: y
+Superuser created successfully.
+
+admin, 주소 없고, 비번 1, 비번확인 1
+
+
+# 로그인 구현
+
+
+
+
+
+
+
+
+
